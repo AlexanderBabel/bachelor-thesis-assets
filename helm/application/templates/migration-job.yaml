@@ -1,0 +1,25 @@
+apiVersion: batch/v1
+kind: Job
+metadata:
+  name: mysql-ansible-job
+  annotations:
+    "helm.sh/hook": post-install
+    "helm.sh/hook-weight": "-5"
+    "helm.sh/hook-delete-policy": before-hook-creation,hook-succeeded
+spec:
+  template:
+    spec:
+      imagePullSecrets:
+        - name: application-pull-secrets
+      restartPolicy: Never
+      containers:
+      - name: ansible
+        image: {{ .Values.mysql.ansibleJob.image.repository }}:{{ .Values.mysql.ansibleJob.image.tag }}
+        volumeMounts:
+          - name: secret
+            mountPath: /app/inventory.yaml
+            subPath: inventory.yaml
+      volumes:
+        - name: secret
+          secret:
+            secretName: mysql-ansible-job-secret
