@@ -1,0 +1,15 @@
+dependencies:
+- name: elasticsearch
+  repository: file://../../charts/elasticsearch
+  version: 0.0.0
+- name: elasticsearch
+  repository: file://../../charts/elasticsearch
+  version: 0.0.0
+- name: kibana
+  repository: https://helm.elastic.co
+  version: 7.15.0
+- name: kibana
+  repository: https://helm.elastic.co
+  version: 7.15.0
+digest: sha256:1bef5c43719ed06e94b3ac8b4c8684d84a0260321846a031c73b92ad9851e026
+generated: "2021-11-01T13:44:58.469871+01:00"

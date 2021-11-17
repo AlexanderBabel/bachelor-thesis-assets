@@ -1,0 +1,17 @@
+apiVersion: v1
+kind: Pod
+metadata:
+  name: upload
+  namespace: elasticsearch
+spec:
+  volumes:
+    - name: german-dictionary
+      persistentVolumeClaim:
+        claimName: elasticsearch-german-dictionary
+  containers:
+    - name: elasticsearch
+      image: nginx
+      resources: {}
+      volumeMounts:
+        - name: german-dictionary
+          mountPath: /usr/share/mount

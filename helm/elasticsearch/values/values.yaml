@@ -1,0 +1,97 @@
+s3:
+  accessId: "[redacted]"
+  secretKey: "" # Set in secrets.values.yaml
+
+master:
+  elasticsearch:
+    extraEnvs:
+      - name: node.attr.tag
+        value: master
+      - name: node.attr.rack_id
+        valueFrom:
+          fieldRef:
+            fieldPath: spec.nodeName
+
+    nodeGroup: master
+
+    replicas: 0
+
+    volumeClaimTemplate:
+      resources:
+        requests:
+          storage: 1Gi
+
+    roles:
+      master: "true"
+      ingest: "false"
+      data: "false"
+
+    esJavaOpts: -Xms512m -Xmx512m
+    resources:
+      limits:
+        cpu: 1000m
+        memory: 2048Mi
+      requests:
+        cpu: 500m
+        memory: 1024Mi
+
+shared:
+  elasticsearch:
+    nodeGroup: shared
+    masterService: makaira-shared
+
+    replicas: 2
+
+    extraEnvs:
+      - name: node.attr.tag
+        value: shared
+      - name: node.attr.rack_id
+        valueFrom:
+          fieldRef:
+            fieldPath: spec.nodeName
+
+    esJavaOpts: -Xms5g -Xmx5g
+    resources:
+      limits:
+        cpu: 8000m
+        memory: 14Gi
+      requests:
+        cpu: 7000m
+        memory: 14Gi
+
+    roles:
+      master: "true"
+
+    tolerations:
+      - key: dedicated
+        operator: Equal
+        value: elasticsearch
+        effect: NoSchedule
+
+kibana:
+  imageTag: 7.6.0
+
+  elasticsearchHosts: "http://makaira-shared:9200"
+
+  resources:
+    requests:
+      cpu: "500m"
+      memory: "1Gi"
+    limits:
+      cpu: "1000m"
+      memory: "2Gi"
+
+kibana-virtual:
+  imageTag: 7.6.0
+
+  elasticsearchHosts: "[redacted]"
+
+  extraEnvs: [] # Set in secrets.values.yaml
+
+  resources:
+    requests:
+      cpu: "500m"
+      memory: "1Gi"
+    limits:
+      cpu: "1000m"
+      memory: "2Gi"
