@@ -1,0 +1,12 @@
+dependencies:
+- name: common
+  repository: https://charts.alexbabel.com
+  version: 2.3.0
+- name: mysql
+  repository: https://charts.bitnami.com/bitnami
+  version: 8.8.11
+- name: redis
+  repository: https://charts.bitnami.com/bitnami
+  version: 15.5.1
+digest: sha256:6bfdf5979d3fcbc1e45c1fa6692d4d8219f217278627276948c0636eb516d73e
+generated: "2021-10-27T22:12:10.689925+02:00"

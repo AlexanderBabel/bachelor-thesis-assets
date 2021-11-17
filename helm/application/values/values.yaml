@@ -1,0 +1,220 @@
+imagePullSecrets:
+  github: "" # Set in secrets.values.yaml
+
+application:
+  image:
+    repository: "[redacted]"
+    tag: 1.1.1-dev
+
+  imagePullSecrets:
+    - name: application-pull-secrets
+
+  controller:
+    replicas: 2
+
+  service:
+    main:
+      ports:
+        http:
+          targetPort: 80
+
+  secret:
+    GRAYLOG_ENDPOINT: "" # Set in secrets.values.yaml
+    PHPINI_MAX_EXECUTION_TIME: "600"
+    PHPINI_MEMORY_LIMIT: "2G"
+    PHPINI_MAX_INPUT_VARS: "40000"
+    PHPINI_UPLOAD_MAX_FILESIZE: "100M"
+    PHPINI_POST_MAX_SIZE: "100M"
+
+  resources:
+    limits:
+      cpu: 4
+      memory: 6Gi
+    requests:
+      cpu: 2
+      memory: 6Gi
+
+  tolerations:
+    - key: dedicated
+      operator: Equal
+      value: app
+      effect: NoSchedule
+
+  podSecurityContext:
+    runAsUser: 0
+    runAsGroup: 0
+    runAsNonRoot: false
+  securityContext:
+    capabilities:
+      drop: []
+    readOnlyRootFilesystem: false
+
+  ingress:
+    main:
+      enabled: true
+      ingressClassName: nginx
+      annotations:
+        kubernetes.io/tls-acme: "true"
+
+      hosts:
+        - host: "[redacted].makaira.io"
+          paths:
+            - path: /
+              pathType: Prefix
+
+      tls:
+        - secretName: application-tls
+          hosts:
+            - "*.makaira.io"
+
+  files:
+    environment: "" # Set in secrets.values.yaml
+
+  persistence:
+    config:
+      enabled: true
+      mountPath: /app/config
+      subPath: customer-configuration
+      size: 50Mi
+      accessMode: ReadWriteMany
+
+    environment:
+      enabled: true
+      mountPath: /app/environment
+      subPath: environment
+      type: custom
+      volumeSpec:
+        secret:
+          secretName: application-environment-secret
+
+    proxysql:
+      enabled: true
+      mountPath: "-"
+      type: custom
+      volumeSpec:
+        secret:
+          secretName: application-proxysql-secret
+
+  additionalContainers:
+    - name: proxysql
+      image: proxysql/proxysql:2.3.2
+      volumeMounts:
+        - name: proxysql
+          subPath: proxysql.cnf
+          mountPath: /etc/proxysql.cnf
+
+mysql:
+  ansibleJob:
+    image: 
+      repository: ghcr.io/makairaio/ansible-mysql
+      tag: 1.0.0
+    host: application-mysql-primary.application.svc.cluster.local
+    port: 3306
+    user: root # Password is retrieved from the auth section
+  databases: [] # Set in secrets.values.yaml
+
+  auth:
+    rootPassword: "" # This variable is configured in secrets.values.yaml
+    username: application
+    database: application
+    password: "" # This variable is configured in secrets.values.yaml
+    replicationUser: "slave_user"
+    replicationPassword: "" # This variable is configured in secrets.values.yaml
+    forcePassword: true
+    usePasswordFiles: false
+
+  architecture: replication
+
+  primary:
+    resources:
+      limits:
+        memory: 6Gi
+        cpu: 2000m
+      requests:
+        memory: 6Gi
+        cpu: 1000m
+
+    tolerations:
+      - key: dedicated
+        operator: Equal
+        value: app-database
+        effect: NoSchedule
+
+    persistence:
+      size: 10Gi
+
+  secondary:
+    replicaCount: 1
+
+    resources:
+      limits:
+        memory: 6Gi
+        cpu: 2000m
+      requests:
+        memory: 4Gi
+        cpu: 500m
+
+    tolerations:
+      - key: dedicated
+        operator: Equal
+        value: app-database
+        effect: NoSchedule
+
+  metrics:
+    enabled: true
+
+    resources:
+      limits:
+        memory: 64Mi
+        cpu: 500m
+      requests:
+        memory: 32Mi
+        cpu: 50m
+
+    serviceMonitor:
+      enabled: true
+
+proxysql:
+  servers:
+    - host: application-mysql-primary.application.svc.cluster.local
+      port: 3306
+      hostGroup: 0
+    - host: application-mysql-secondary.application.svc.cluster.local
+      port: 3306
+      hostGroup: 1
+      extraConfig: |
+        max_replication_lag = 60
+
+  users: [] # Set in secrets.values.yaml
+
+  queryRules:
+    # Send read queries to secondary
+    - id: 99
+      matchPattern: "^SELECT"
+      cacheTtl: 120000 # 2m
+      destinationHostGroup: 0
+      active: 1
+      apply: 1
+
+    # Send write queries to primary
+    - id: 100
+      matchPattern: "^SELECT.*FOR UPDATE"
+      cacheTtl: 120000 # 2m
+      destinationHostGroup: 0
+      active: 1
+      apply: 1
+
+redis:
+  architecture: standalone
+  auth:
+    password: "" # Set in secrets.values.yaml
+  metrics:
+    enabled: true
+    serviceMonitor:
+      enabled: true
+
+  tolerations:
+    - key: dedicated
+      operator: Equal
+      value: lasttest
+      effect: NoSchedule
