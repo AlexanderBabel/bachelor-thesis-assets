@@ -1,0 +1,3 @@
+@@ -42,6 +42,7 @@
+ graylog=[redacted]
++graylog.url=https://[redacted]/gelf

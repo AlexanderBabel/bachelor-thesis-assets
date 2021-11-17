@@ -1,0 +1,16 @@
+@@ -17,12 +17,12 @@
+     <services>
+         <service id="gelf.json_encoder" class="Gelf\Encoder\JsonEncoder"/>
+-        <service id="gelf.udp.transport" class="Gelf\Transport\UdpTransport">
+-            <argument>%graylog.hostname%</argument>
+-            <argument>%graylog.port%</argument>
++        <service id="gelf.transport.http" class="Gelf\Transport\HttpTransport">
++            <factory class="Gelf\Transport\HttpTransport" method="fromUrl"/>
++            <argument>%graylog.url%</argument>
+         </service>
+         <service id="gelf.publisher" class="Gelf\Publisher">
+-            <argument type="service" id="gelf.udp.transport" />
++            <argument type="service" id="gelf.transport.http" />
+         </service>
+         <service id="monolog.gelf_handler" class="Monolog\Handler\GelfHandler">
+             <argument type="service" id="gelf.publisher" />

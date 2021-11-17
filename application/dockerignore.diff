@@ -1,0 +1,16 @@
+@@ -1,6 +1,6 @@
+ /.git/
+ /.vscode/
+-/node_modules/
++node_modules/
+ /vendor/
+ /app/cache/
+ /app/logs/
+
+@@ -9,10 +9,10 @@
+ /data/
+ /docs/
+ /scripts/
+-/web/
++# /web/
+ /README.md

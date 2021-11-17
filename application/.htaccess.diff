@@ -1,0 +1,17 @@
+@@ -1,3 +1,5 @@
++DirectoryIndex index.html index.php
+
+@@ -6,13 +8,13 @@
+-  RewriteCond %{HTTP_HOST} !^api$
+-  RewriteCond %{HTTP_HOST} !localhost
+-  RewriteCond %{HTTP_HOST} !.vm$
++  # RewriteCond %{HTTP_HOST} !^api$
++  # RewriteCond %{HTTP_HOST} !localhost
++  # RewriteCond %{HTTP_HOST} !.vm$
+
+-  RewriteCond %{HTTP:X-Forwarded-Proto} !https
+-  RewriteCond %{HTTPS} !on
+-  RewriteRule ^(.*)$ https://%{HTTP_HOST}%{REQUEST_URI} [R=301,L]
++  # RewriteCond %{HTTP:X-Forwarded-Proto} !https
++  # RewriteCond %{HTTPS} !on
++  # RewriteRule ^(.*)$ https://%{HTTP_HOST}%{REQUEST_URI} [R=301,L]
