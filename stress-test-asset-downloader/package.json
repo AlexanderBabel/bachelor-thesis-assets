@@ -1,0 +1,13 @@
+{
+  "dependencies": {
+    "axios": "^0.24.0",
+    "dotenv": "^10.0.0"
+  },
+  "type": "module",
+  "name": "stress-test-asset-downloader",
+  "version": "1.0.0",
+  "main": "index.js",
+  "author": "Alexander Babel",
+  "license": "MIT",
+  "private": false
+}
