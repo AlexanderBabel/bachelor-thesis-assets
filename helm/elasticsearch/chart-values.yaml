@@ -1,0 +1,71 @@
+elasticsearch:
+  image: makaira/elasticsearch
+  imageTag: 7.6.0
+
+  clusterName: makaira
+  masterService: makaira-master
+
+  esConfig:
+    elasticsearch.yml: |
+      # xpack.security.enabled: true
+      # indices.recovery.max_bytes_per_sec: 10mb
+      indices.query.bool.max_clause_count: 2048
+      indices.queries.cache.size: 0mb
+      search.max_buckets: 65536
+      cluster.routing.allocation.node_concurrent_recoveries: 1
+
+    jvm.options: |
+      -Dfile.encoding=UTF-8
+      -Dio.netty.noKeySetOptimization=true
+      -Dio.netty.noUnsafe=true
+      -Dio.netty.recycler.maxCapacityPerThread=0
+      -Djava.awt.headless=true
+      -Djna.nosys=true
+      -Dlog4j.shutdownHookEnabled=false
+      -Dlog4j2.disable.jmx=true
+      -XX:+AlwaysPreTouch
+      -XX:+UseG1GC
+      -XX:-HeapDumpOnOutOfMemoryError
+      -XX:-OmitStackTraceInFastThrow
+      -XX:CMSInitiatingOccupancyFraction=75
+      -XX:G1HeapRegionSize=2m
+      -XX:MaxGCPauseMillis=300
+      # -Xlog:gc:/var/log/gc.log
+      -Xss1m
+      -server
+
+  extraVolumes:
+    - name: german-dictionary
+      persistentVolumeClaim:
+        claimName: elasticsearch-german-dictionary
+
+  extraVolumeMounts:
+    - mountPath: /usr/share/elasticsearch/config/de_DR.xml
+      name: german-dictionary
+      subPath: de_DR.xml
+    - mountPath: /usr/share/elasticsearch/config/germanUTF8small_icu.dic
+      name: german-dictionary
+      subPath: germanUTF8small_icu.dic
+    - mountPath: /usr/share/elasticsearch/config/synonyms
+      name: german-dictionary
+      subPath: synonyms
+
+  keystore:
+    - secretName: elasticsearch-s3-secrets
+
+  volumeClaimTemplate:
+    accessModes: ["ReadWriteOnce"]
+    resources:
+      requests:
+        storage: 30Gi
+    storageClassName: local-path
+
+  persistence:
+    enabled: true
+
+  roles:
+    master: "false"
+    ingest: "true"
+    data: "true"
+    # remote_cluster_client: "false"
+    # ml: "false"
