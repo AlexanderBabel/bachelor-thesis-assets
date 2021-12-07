@@ -1,0 +1,70 @@
+apiVersion: elasticsearch.k8s.elastic.co/v1
+kind: Elasticsearch
+metadata:
+  name: quickstart
+  namespace: elastic-system
+spec:
+  nodeSets:
+    - count: 2
+      podTemplate:
+        spec:
+          containers:
+            - env:
+                - name: ES_JAVA_OPTS
+                  value: '-Xms2g -Xmx2g'
+              name: elasticsearch
+              resources:
+                limits:
+                  cpu: 1
+                  memory: 4Gi
+                requests:
+                  cpu: 0.25
+                  memory: 4Gi
+              volumeMounts:
+                - mountPath: /usr/share/elasticsearch/config/de_DR.xml
+                  name: german-dictionary
+                  subPath: de_DR.xml
+                - mountPath: /usr/share/elasticsearch/config/germanUTF8small_icu.dic
+                  name: german-dictionary
+                  subPath: germanUTF8small_icu.dic
+          initContainers:
+            - command:
+                - sh
+                - '-c'
+                - sysctl -w vm.max_map_count=262144
+              name: sysctl
+              securityContext:
+                privileged: true
+            - command:
+                - sh
+                - '-c'
+                - >
+                  bin/elasticsearch-plugin install --batch repository-s3
+                  analysis-stempel analysis-icu
+              name: install-plugin
+            - command:
+                - sh
+                - '-c'
+                - >
+                  echo $AWS_ACCESS_KEY_ID | bin/elasticsearch-keystore add
+                  --stdin --force s3.client.default.access_key
+
+                  echo $AWS_SECRET_ACCESS_KEY | bin/elasticsearch-keystore add
+                  --stdin --force s3.client.default.secret_key
+              env:
+                - name: AWS_ACCESS_KEY_ID
+                  valueFrom:
+                    secretKeyRef:
+                      key: access-key-id
+                      name: aws-s3-keys
+                - name: AWS_SECRET_ACCESS_KEY
+                  valueFrom:
+                    secretKeyRef:
+                      key: access-secret-key
+                      name: aws-s3-keys
+              name: add-aws-keys
+          volumes:
+            - name: german-dictionary
+              persistentVolumeClaim:
+                claimName: elasticsearch-german-dictionary
+  version: 7.14.0
