@@ -11,4 +11,5 @@ In this repo you can find all code related resources that were created during th
     - `helm/elasticsearch` - The helm chart for Elasticsearch.
 - `scholar-search-downloader` - A script for automatically downloading the results from searapi.com
 - `stress-test-asset-downloader` - Multiple scripts for automatically downloading graphs file from Grafana and Zabbix.
+- `elasticsearch.yaml` - Contains the CRD from the first Elasticsearch installation attempt.
 - `synthetic-tests.md` - Contains the results of multiple `sysbench` tests.
